@@ -28,9 +28,8 @@ Project Manager is a tool designed to help you organize, track, and manage your 
         ```
         Replace `<username>`, `<password>`, `<host>`, `<port>`, and `<database>` with your database credentials.
         ```env
-        JWT_SECRET : "Your Secret Key"
+        NEXTAUTH_SECRET : "yousecretkey"
         ```
-        Also add an jwt secret to your .env file.
 3. **Run Migrations**: Apply the database schema using Prisma migrations:
         ```bash
         npx prisma migrate dev

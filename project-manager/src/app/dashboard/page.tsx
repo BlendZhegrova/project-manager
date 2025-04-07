@@ -1,10 +1,9 @@
 // app/dashboard/page.tsx
-import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { Project } from '@prisma/client';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-
+import { getCurrentUser } from '@/lib/getCurrentUser';
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   
@@ -13,7 +12,7 @@ export default async function DashboardPage() {
   }
 
   const projects = await prisma.project.findMany({
-    where: { userId: user.id },
+    where: { userId: Number(user.id) },
     orderBy: { createdAt: 'desc' as const }, // Fix for sorting
     include: {
       _count: {

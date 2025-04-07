@@ -1,10 +1,9 @@
 // src/app/api/tasks/[taskId]/route.ts
 
-import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { ApiResponse } from '@/lib/api-responses';
 import { NextRequest } from 'next/server';
-
+import { getCurrentUser } from '@/lib/getCurrentUser';
 const validStatuses = ['todo', 'in-progress', 'done'];
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ taskId: string }> }) {
@@ -20,7 +19,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ task
     const task = await prisma.task.findFirst({
       where: {
         id: taskIdParsed,
-        project: { userId: user.id }
+        project: { userId: parseInt(user.id) }
       },
       include: {
         project: {
@@ -59,7 +58,7 @@ export async function PUT(req: NextRequest, { params }: { params: { taskId: stri
     }
 
     const existingTask = await prisma.task.findFirst({
-      where: { id: taskId, project: { userId: user.id } },
+      where: { id: taskId, project: { userId: parseInt(user.id) } },
     });
 
     if (!existingTask) return ApiResponse.notFound('Task');
@@ -95,7 +94,7 @@ export async function DELETE(req: Request, { params }: { params: { taskId: strin
       where: { 
         id: taskId,
         project: {
-          userId: user.id
+          userId: parseInt(user.id)
         }
       }
     });

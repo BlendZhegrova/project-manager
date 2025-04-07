@@ -1,8 +1,7 @@
-import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
-
+import { getCurrentUser } from '@/lib/getCurrentUser';
 interface ProjectFormData {
   title: string;
   description?: string;
@@ -18,13 +17,13 @@ export default async function ProjectEditPage({
   if (isNaN(projectId)) notFound();
 
   const user = await getCurrentUser();
-  if (!user) redirect('/login');
+  if (!user?.id) redirect('/login');
 
   // Fetch project data
   const project = await prisma.project.findFirst({
     where: {
       id: projectId,
-      userId: user.id,
+      userId: Number(user.id),
     },
     select: {
       id: true,

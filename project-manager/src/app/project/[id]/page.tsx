@@ -1,11 +1,10 @@
 // app/project/[id]/page.tsx
-import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { DeleteProjectButton } from '@/app/components/DeleteProjectButton';
 import { TaskListClient } from '@/app/components/TaskListClient';
-
+import { getCurrentUser } from '@/lib/getCurrentUser';
 export default async function ProjectViewPage({
   params,
 }: {
@@ -27,7 +26,7 @@ export default async function ProjectViewPage({
     prisma.project.findUnique({
       where: { 
         id: projectId,
-        userId: user.id
+        userId: parseInt(user.id, 10)
       },
       select: {
         id: true,
@@ -42,7 +41,12 @@ export default async function ProjectViewPage({
     prisma.task.findMany({
       where: { projectId },
       orderBy: { orderNumber: 'asc' },
-    })
+    }).then(tasks => tasks.map(task => ({
+      ...task,
+      description: task.description ?? '', // Ensure description is always a string
+      dueDate: task.dueDate ? task.dueDate.toISOString() : null, // Convert dueDate to string
+      createdAt: task.createdAt.toISOString(), // Convert createdAt to string
+    })))
   ]);
 
   if (!project) notFound();

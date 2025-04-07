@@ -1,17 +1,19 @@
 'use client'
+
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { signIn } from 'next-auth/react'
 
 type AuthFormProps = {
   type: 'login' | 'register'
 }
 
 export default function AuthForm({ type }: AuthFormProps) {
-  const [email, setEmail] = useState<string>('')
-  const [password, setPassword] = useState<string>('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: FormEvent) => {
@@ -20,20 +22,37 @@ export default function AuthForm({ type }: AuthFormProps) {
     setError(null)
 
     try {
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, action: type })
-      })
+      if (type === 'login') {
+        const res = await signIn('credentials', {
+          redirect: false,
+          email,
+          password,
+        })
 
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Authentication failed')
+        if (res?.error) {
+          throw new Error(res.error)
+        }
+
+        router.push('/dashboard')
+      } else {
+        // Register
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        })
+
+        if (!res.ok) {
+          const data = await res.json()
+          throw new Error(data.error || 'Registration failed')
+        }
+
+        // Optionally auto-login after register
+        await signIn('credentials', { redirect: false, email, password })
+        router.push('/dashboard')
       }
-
-      router.push('/dashboard')
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred')
+    } catch (err: any) {
+      setError(err.message || 'An unknown error occurred')
     } finally {
       setIsLoading(false)
     }
@@ -41,12 +60,8 @@ export default function AuthForm({ type }: AuthFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Email Field */}
       <div>
-        <label
-          htmlFor="email"
-          className="block text-sm font-medium text-gray-700"
-        >
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
           Email address
         </label>
         <input
@@ -56,16 +71,12 @@ export default function AuthForm({ type }: AuthFormProps) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
         />
       </div>
 
-      {/* Password Field */}
       <div>
-        <label
-          htmlFor="password"
-          className="block text-sm font-medium text-gray-700"
-        >
+        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
           Password
         </label>
         <input
@@ -76,24 +87,16 @@ export default function AuthForm({ type }: AuthFormProps) {
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={type === 'register' ? 8 : undefined}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
         />
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="text-red-500 text-sm">
-          {error}
-        </div>
-      )}
+      {error && <p className="text-sm text-red-500">{error}</p>}
 
-      {/* Submit Button */}
       <button
         type="submit"
         disabled={isLoading}
-        className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-          isLoading ? 'opacity-50 cursor-not-allowed' : ''
-        }`}
+        className={`w-full flex justify-center py-2 px-4 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         {isLoading ? 'Processing...' : type === 'login' ? 'Sign in' : 'Register'}
       </button>

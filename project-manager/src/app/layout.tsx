@@ -1,6 +1,7 @@
 // app/layout.tsx
 import './globals.css';
 import Navigation from '@/app/components/Navigation';
+import { SessionProviderWrapper } from '@/app/components/SessionProvider';
 
 export const metadata = {
   title: 'TaskFlow',
@@ -15,10 +16,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Navigation />
-        <main className="container mx-auto px-4 py-8">
-          {children}
-        </main>
+        <SessionProviderWrapper>
+          <Navigation />
+          <main className="container mx-auto px-4 py-8">
+            {children}
+          </main>
+        </SessionProviderWrapper>
       </body>
     </html>
   );

@@ -1,8 +1,7 @@
 // app/api/tasks/[taskId]/updateorder/route.ts
 import { prisma } from '@/lib/db';
-import { getCurrentUser } from '@/lib/auth';
 import { NextResponse } from 'next/server';
-
+import { getCurrentUser } from '@/lib/getCurrentUser';
 export async function POST(
   request: Request,
   { params }: { params: { taskId: string } }
@@ -33,7 +32,7 @@ export async function POST(
       include: { project: true }
     });
 
-    if (!task || task.project.userId !== user.id) {
+    if (!task || task.project.userId !== Number(user.id)) {
       return NextResponse.json(
         { message: 'Task not found or access denied' },
         { status: 404 }

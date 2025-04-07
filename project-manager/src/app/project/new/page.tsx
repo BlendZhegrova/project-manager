@@ -1,8 +1,7 @@
-import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-
+import { getCurrentUser } from '@/lib/getCurrentUser';
 export default async function NewProjectPage() {
   const user = await getCurrentUser();
   if (!user) redirect('/login');
@@ -17,7 +16,7 @@ export default async function NewProjectPage() {
       data: {
         title,
         description,
-        userId: user!.id,
+        userId: Number(user!.id),
       },
     });
 

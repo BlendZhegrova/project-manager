@@ -1,8 +1,8 @@
 // src/app/api/projects/route.ts
 import { NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { Project } from '@prisma/client';
+import { getCurrentUser } from '@/lib/getCurrentUser';
 
 // Validation schema
 const projectSchema = {
@@ -30,7 +30,7 @@ export async function GET() {
     }
 
     const projects = await prisma.project.findMany({
-      where: { userId: user.id },
+      where: { userId: Number(user.id) },
       include: { 
         _count: { select: { tasks: true } },
         tasks: {
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
       data: {
         title,
         description: description || null,
-        userId: user.id
+        userId: Number(user.id)
       }
     });
 
@@ -119,7 +119,7 @@ export async function PUT(req: Request) {
 
     // Verify project exists and belongs to user
     const existingProject = await prisma.project.findFirst({
-      where: { id: Number(id), userId: user.id }
+      where: { id: Number(id), userId: Number(user.id) }
     });
 
     if (!existingProject) {
@@ -179,7 +179,7 @@ export async function DELETE(
 
     // Verify project exists and belongs to user
     const project = await prisma.project.findFirst({
-      where: { id: projectId, userId: user.id }
+      where: { id: projectId, userId: Number(user.id) }
     });
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });

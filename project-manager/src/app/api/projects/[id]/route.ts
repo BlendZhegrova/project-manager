@@ -1,7 +1,7 @@
 // src/app/api/projects/[id]/route.ts
 import { NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { getCurrentUser } from '@/lib/getCurrentUser';
 
 export async function DELETE(
   _req: Request,
@@ -19,7 +19,7 @@ export async function DELETE(
     }
 
     const project = await prisma.project.findFirst({
-      where: { id: projectId, userId: user.id }
+      where: { id: projectId, userId: Number(user.id) }
     });
 
     if (!project) {

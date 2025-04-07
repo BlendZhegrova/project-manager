@@ -3,21 +3,20 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { signOut, useSession } from 'next-auth/react';
 
 export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === 'authenticated';
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('/api/auth', {
-        method: 'DELETE'
-      });
-      
-      if (response.ok) {
-        router.push('/login');
-        router.refresh(); // Clear client-side cache
-      }
+      // Use NextAuth's signOut function
+      await signOut({ redirect: false });
+      router.push('/login');
+      router.refresh(); // Clear client-side cache
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -36,12 +35,22 @@ export default function Navigation() {
           >
             Dashboard
           </Link>
-          <button
-            onClick={handleLogout}
-            className="hover:text-gray-300 bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm"
-          >
-            Logout
-          </button>
+          
+          {isAuthenticated ? (
+            <button
+              onClick={handleLogout}
+              className="hover:text-gray-300 bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm"
+            >
+              Logout
+            </button>
+          ) : (
+            <Link 
+              href="/login" 
+              className="hover:text-gray-300 bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
+            >
+              Login
+            </Link>
+          )}
         </div>
       </div>
     </nav>

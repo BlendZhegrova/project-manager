@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
 // Type for task
@@ -29,17 +30,15 @@ export function TaskListClient({ tasks, projectId }: { tasks: Task[], projectId:
     const { destination, source } = result;
     if (!destination || destination.index === source.index) return;
 
-    // Reorder tasks in the client state
     const reorderedTasks = Array.from(taskList);
     const [movedTask] = reorderedTasks.splice(source.index, 1);
     reorderedTasks.splice(destination.index, 0, movedTask);
 
     setTaskList(reorderedTasks);
 
-    // Prepare updated order numbers to send to the backend
     const updatedOrderNumbers = reorderedTasks.map((task, index) => ({
       id: task.id,
-      orderNumber: index + 1, // Order numbers start from 1
+      orderNumber: index + 1, 
     }));
 
     try {
@@ -58,7 +57,6 @@ export function TaskListClient({ tasks, projectId }: { tasks: Task[], projectId:
       }
     } catch (error) {
       console.error(error);
-      // Optionally, revert the changes if the update fails
       setTaskList(tasks);
     }
   };
@@ -87,35 +85,44 @@ export function TaskListClient({ tasks, projectId }: { tasks: Task[], projectId:
             >
               {filteredTasks.map((task, index) => (
                 <Draggable key={task.id} draggableId={String(task.id)} index={index}>
-                  {(provided) => (
-                    <div
-                      className="block border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                    >
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-medium">{task.title}</h3>
+                {(provided) => (
+                  <div
+                    className="block border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                  >
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-medium">{task.title}</h3>
+                      <div className="flex items-center gap-2">
                         <span className={`text-xs px-2 py-1 rounded ${task.status === 'done' ? 'bg-green-100 text-green-800' : task.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
                           {task.status.replace('-', ' ')}
                         </span>
-                      </div>
-                      {task.description && (
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                          {task.description}
-                        </p>
-                      )}
-                      <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
-                        {task.dueDate ? (
-                          <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
-                        ) : (
-                          <span>No due date</span>
-                        )}
-                        <span>Created: {new Date(task.createdAt).toLocaleDateString()}</span>
+                        <Link
+                          href={`/project/${projectId}/tasks/${task.id}/edit`}
+                          className="text-sm text-blue-600 hover:text-blue-800"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Edit
+                        </Link>
                       </div>
                     </div>
-                  )}
-                </Draggable>
+                    {task.description && (
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                        {task.description}
+                      </p>
+                    )}
+                    <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+                      {task.dueDate ? (
+                        <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
+                      ) : (
+                        <span>No due date</span>
+                      )}
+                      <span>Created: {new Date(task.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                )}
+              </Draggable>
               ))}
               {provided.placeholder}
             </div>
