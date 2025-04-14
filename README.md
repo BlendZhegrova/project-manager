@@ -45,7 +45,7 @@ Project Manager is a tool designed to help you organize, track, and manage your 
 
 ## Stack Used
 - **Frontend**: React.js
-- **Backend**: Node.js with Express.js
+- **Backend**: Next.js API Routes
 - **Database**: PostgreSQL
 - **Others**: Prisma ORM, dotenv for environment variables
 - **Collaboration tools**: Git, GitHub
